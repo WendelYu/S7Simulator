@@ -1,0 +1,215 @@
+{
+  "name": "S7 Workspace",
+  "plcs": [
+    {
+      "name": "Production Line 01",
+      "model": "S7-1500",
+      "host": "127.0.0.1",
+      "port": 1102,
+      "rack": 0,
+      "slot": 1,
+      "max_clients": 32,
+      "blocks": [
+        {
+          "number": 1,
+          "name": "Process_Data",
+          "size": 512,
+          "variables": [
+            {
+              "name": "System_Running",
+              "dtype": "BOOL",
+              "count": 1,
+              "length": 32,
+              "value": true,
+              "comment": "设备运行状态",
+              "simulation": {
+                "mode": "manual",
+                "minimum": 0,
+                "maximum": 100,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "8ddc245568174b0184db069365336b16"
+            },
+            {
+              "name": "Emergency_Stop",
+              "dtype": "BOOL",
+              "count": 1,
+              "length": 32,
+              "value": false,
+              "comment": "急停信号",
+              "simulation": {
+                "mode": "manual",
+                "minimum": 0,
+                "maximum": 100,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "84698aeb09a94edb81d8836536b8e80f"
+            },
+            {
+              "name": "Temperature",
+              "dtype": "REAL",
+              "count": 1,
+              "length": 32,
+              "value": 24.5,
+              "comment": "反应釜温度 · °C",
+              "simulation": {
+                "mode": "sine",
+                "minimum": 20,
+                "maximum": 80,
+                "interval_ms": 250,
+                "period_ms": 20000
+              },
+              "id": "89a9f69c14a946f281013e1f944fca42"
+            },
+            {
+              "name": "Pressure",
+              "dtype": "REAL",
+              "count": 1,
+              "length": 32,
+              "value": 4.2,
+              "comment": "管道压力 · bar",
+              "simulation": {
+                "mode": "random",
+                "minimum": 3.8,
+                "maximum": 4.6,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "fd737bf37ba1440b86d0f156fd518152"
+            },
+            {
+              "name": "Motor_Speed",
+              "dtype": "INT",
+              "count": 1,
+              "length": 32,
+              "value": 1450,
+              "comment": "主电机转速 · rpm",
+              "simulation": {
+                "mode": "random",
+                "minimum": 1400,
+                "maximum": 1500,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "56e7353c5ddc4db597012db8ede8153d"
+            },
+            {
+              "name": "Batch_Count",
+              "dtype": "DINT",
+              "count": 1,
+              "length": 32,
+              "value": 128,
+              "comment": "累计批次",
+              "simulation": {
+                "mode": "manual",
+                "minimum": 0,
+                "maximum": 100,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "a9a20ef465a24b3f843d1bbd6c4c8863"
+            },
+            {
+              "name": "Product_Name",
+              "dtype": "STRING",
+              "count": 1,
+              "length": 32,
+              "value": "S7 Demo",
+              "comment": "产品标识 · STRING[32]",
+              "simulation": {
+                "mode": "manual",
+                "minimum": 0,
+                "maximum": 100,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "d37822d83c29489b8f69c2b88151cf03"
+            },
+            {
+              "name": "Tank_Levels",
+              "dtype": "REAL",
+              "count": 4,
+              "length": 32,
+              "value": [
+                32.5,
+                60.0,
+                48.2,
+                71.0
+              ],
+              "comment": "储罐液位数组 · %",
+              "simulation": {
+                "mode": "random",
+                "minimum": 20,
+                "maximum": 90,
+                "interval_ms": 2000,
+                "period_ms": 10000
+              },
+              "id": "36bca2bea6154c708073a686851dfe53"
+            }
+          ],
+          "id": "43becf56e02f44c0b756ef7b63b776dc"
+        },
+        {
+          "number": 2,
+          "name": "Control_Parameters",
+          "size": 512,
+          "variables": [
+            {
+              "name": "Setpoint",
+              "dtype": "REAL",
+              "count": 1,
+              "length": 32,
+              "value": 65.0,
+              "comment": "温度设定值 · °C",
+              "simulation": {
+                "mode": "manual",
+                "minimum": 0,
+                "maximum": 100,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "e6a9acc5f701406ba523e7185cf95db4"
+            },
+            {
+              "name": "Valve_Open",
+              "dtype": "BOOL",
+              "count": 1,
+              "length": 32,
+              "value": false,
+              "comment": "阀门控制",
+              "simulation": {
+                "mode": "manual",
+                "minimum": 0,
+                "maximum": 100,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "31a193cbde5043128f7e333a111b1838"
+            },
+            {
+              "name": "Recipe_ID",
+              "dtype": "UINT",
+              "count": 1,
+              "length": 32,
+              "value": 1001,
+              "comment": "配方编号",
+              "simulation": {
+                "mode": "manual",
+                "minimum": 0,
+                "maximum": 100,
+                "interval_ms": 1000,
+                "period_ms": 10000
+              },
+              "id": "fe3f8ead80704325822d06cabdae3d2c"
+            }
+          ],
+          "id": "b40a4beb56de4a1a8bfdf6518da98b2b"
+        }
+      ],
+      "id": "e58acd5ed075415089b2b7e1707cd8bf"
+    }
+  ],
+  "version": 1
+}

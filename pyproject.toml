@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "s7-studio-simulator"
+dynamic = ["version"]
+description = "Cross-platform graphical S7 communication and data simulator"
+requires-python = ">=3.11"
+dependencies = ["PySide6-Essentials>=6.8,<7", "python-snap7==3.2.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "pyinstaller>=6,<7"]
+
+[project.scripts]
+s7-studio = "s7sim.app:main"
+
+[tool.setuptools.packages.find]
+include = ["s7sim*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "s7sim.__version__"}
+
+[tool.setuptools.package-data]
+s7sim = ["assets/*.svg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

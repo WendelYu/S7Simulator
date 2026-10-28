@@ -1,0 +1,5 @@
+﻿DB编号,DB名称,DB容量,变量名,数据类型,偏移,数组数量,字符串容量,预留字节,初始值,模拟模式,下限,上限,间隔ms,周期ms,注释
+10,Test_Process,512,Running,BOOL,0.0,1,,,true,翻转,,,1000,,运行信号
+10,Test_Process,512,Temperature,REAL,2.0,1,,,25.5,随机,20,80,500,,温度
+10,Test_Process,512,Product,WSTRING,,1,32,,测试产品,手动,,,,,中文名称
+11,Test_Array,512,Levels,REAL,,4,,,"[10, 20, 30, 40]",随机,0,100,1000,,液位数组

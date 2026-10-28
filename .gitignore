@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+.DS_Store
+*.spec
+!packaging/S7Studio.spec
+.env
+.env.*
+!.env.example
+.planning/
+task_plan.md
+findings.md
+progress.md
