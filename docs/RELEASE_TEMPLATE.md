@@ -9,7 +9,7 @@
 - **Windows 10 / 11 x64 安装版**：`S7Studio-v@VERSION@-windows-x64-setup.exe`，双击后按向导安装。安装到当前用户目录，无需管理员权限。
 - **Windows 便携版**：`S7Studio-v@VERSION@-windows-x64.zip`，完整解压后运行 `S7 Studio/S7 Studio.exe`；必须保留 `_internal` 等同目录文件，不能只复制 EXE。
 
-Mac 要求 macOS 13 或更新版本。请通过“苹果菜单 → 关于本机”确认芯片。GitHub 自动附带的 `Source code` 是源码包，不是安装包。
+Mac 要求 macOS 14 或更新版本。请通过“苹果菜单 → 关于本机”确认芯片。GitHub 自动附带的 `Source code` 是源码包，不是安装包。
 
 ## Mac 安装与首次打开
 

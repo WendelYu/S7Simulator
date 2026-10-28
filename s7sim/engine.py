@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import math
 import random
+import select
 import socket
 import struct
 import threading
@@ -15,7 +16,7 @@ from dataclasses import asdict, dataclass
 
 from snap7.server import (
     CPUState, EVC_CLIENT_EXCEPTION, EVC_CLIENT_NO_ROOM, EVC_DATA_READ,
-    EVC_DATA_WRITE, EVC_SERVER_STARTED, Server, ServerState,
+    EVC_DATA_WRITE, EVC_SERVER_STARTED, EVC_SERVER_STOPPED, Server, ServerState,
 )
 from snap7.type import SrvArea
 from snap7.datatypes import S7DataTypes, S7WordLen
@@ -40,11 +41,41 @@ class Connection:
     bytes_written: int = 0
 
 
+class _InterruptibleSocket:
+    """Keep snap7's frame deadlines while making idle reads cancellable.
+
+    Closing or shutting down a timed socket from another thread does not
+    reliably wake its pending read on every platform. Poll readiness briefly,
+    then let the original socket perform each read without changing framing.
+    """
+
+    def __init__(self, sock, stopping):
+        self._socket = sock
+        self._stopping = stopping
+
+    def __getattr__(self, name):
+        return getattr(self._socket, name)
+
+    def recv(self, size, flags=0):
+        timeout = self._socket.gettimeout()
+        if timeout == 0:
+            return self._socket.recv(size, flags)
+        deadline = time.monotonic() + timeout if timeout is not None else None
+        while not self._stopping.is_set():
+            remaining = deadline - time.monotonic() if deadline is not None else 0.1
+            if remaining <= 0:
+                raise TimeoutError('Receive deadline exceeded')
+            ready, _, _ = select.select([self._socket], [], [], min(0.1, remaining))
+            if ready:
+                return self._socket.recv(size, flags)
+        raise ConnectionAbortedError('S7 service stopped')
+
+
 class ObservedServer(Server):
     """Small adapter to pinned snap7 3.2.1 for peer ports and socket cleanup.
 
     SrvEvent only exposes the peer IP; the client handler supplies the port.
-    Explicit socket shutdown prevents idle clients delaying stop/restart.
+    Cancellable reads and socket shutdown keep stop/restart responsive.
     """
 
     def __init__(self, owner: PLCRuntime):
@@ -53,6 +84,7 @@ class ObservedServer(Server):
         self.local = threading.local()
         self.sockets: dict[tuple, socket.socket] = {}
         self.socket_lock = threading.Lock()
+        self.stopping = threading.Event()
 
     def start(self, tcp_port: int = 102) -> int:
         # Do not use the upstream SO_REUSEPORT: a simulator must have exclusive
@@ -72,6 +104,7 @@ class ObservedServer(Server):
             listener.close()
             raise
         self.server_socket = listener
+        self.stopping.clear()
         self.running = True
         self.state = ServerState.RUNNING
         self.cpu_state = CPUState.RUN
@@ -88,7 +121,7 @@ class ObservedServer(Server):
         try:
             if not self.running:
                 client_socket.close()
-            super()._handle_client(client_socket, address)
+            super()._handle_client(_InterruptibleSocket(client_socket, self.stopping), address)
         finally:
             with self.socket_lock:
                 self.sockets.pop(address, None)
@@ -226,27 +259,45 @@ class ObservedServer(Server):
         return self._area_response(request, S7Function.WRITE_AREA, count, results)
 
     def stop(self):
-        # Stop accepting first, then unblock protocol reads for all peers.
+        if not self.running and self.server_socket is None:
+            return 0
+        # Windows may keep a timed recv/accept blocked after shutdown alone.
+        # Signal all readers before joining, and never briefly restore RUNNING
+        # just to invoke the upstream bookkeeping.
         self.running = False
-        listener = self.server_socket
-        if listener:
+        self.stopping.set()
+        self.state = ServerState.STOPPED
+        self.cpu_state = CPUState.STOP
+
+        def shutdown_socket(sock):
             try:
-                listener.close()
+                sock.shutdown(socket.SHUT_RDWR)
             except OSError:
                 pass
-        if self.server_thread and self.server_thread.is_alive():
-            self.server_thread.join(timeout=2)
+
+        listener = self.server_socket
+        if listener is not None:
+            shutdown_socket(listener)
+            listener.close()
         with self.socket_lock:
             clients = list(self.sockets.values())
         for client in clients:
-            try:
-                client.shutdown(socket.SHUT_RDWR)
-            except OSError:
-                pass
-        # Base.stop is a no-op if running=False; briefly restore it only to
-        # perform its thread bookkeeping, after the accept loop has finished.
-        self.running = True
-        return super().stop()
+            shutdown_socket(client)
+        with self.client_lock:
+            threads = list(self.clients)
+        # One shared deadline avoids a delay proportional to the client count.
+        deadline = time.monotonic() + 1.5
+        for thread in [self.server_thread, *threads]:
+            if thread and thread is not threading.current_thread() and thread.is_alive():
+                thread.join(timeout=max(0, deadline - time.monotonic()))
+        self.server_socket = None
+        for client in clients:
+            client.close()
+        with self.client_lock:
+            self.clients[:] = [thread for thread in self.clients if thread.is_alive()]
+            self.client_count = len(self.clients)
+        self._emit_event(EVC_SERVER_STOPPED)
+        return 0
 
 
 class PLCRuntime:

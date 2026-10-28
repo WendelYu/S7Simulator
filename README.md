@@ -135,7 +135,7 @@ GitHub Actions 在 macOS Apple Silicon、macOS Intel 和 Windows x64 上运行�
 python scripts/build.py
 ```
 
-- macOS：`dist/S7 Studio.app`、`dist/S7Studio-v0.1.0-macos-arm64.dmg` 和同名前缀的 ZIP；Intel 构建的架构为 `x64`。DMG 提供 Applications 快捷方式和安装说明。要求 macOS 13 或更新版本。
+- macOS：`dist/S7 Studio.app`、`dist/S7Studio-v0.1.0-macos-arm64.dmg` 和同名前缀的 ZIP；Intel 构建的架构为 `x64`。DMG 提供 Applications 快捷方式和安装说明。要求 macOS 14 或更新版本。
 - Windows：`dist/S7 Studio/S7 Studio.exe`、`dist/S7Studio-v0.1.0-windows-x64.zip` 和 `dist/S7Studio-v0.1.0-windows-x64-setup.exe`。需安装 [Inno Setup 6](https://jrsoftware.org/isinfo.php)，GitHub Windows runner 已预装。安装程序在当前用户目录安装，支持快捷方式和系统卸载。
 - 每个 DMG、ZIP、安装 EXE 都有同名 `.sha256` 校验文件；Release 另外提供 `SHA256SUMS.txt`。Windows 便携版必须完整解压，不能单独拷贝 EXE。
 - 当前构建使用本机架构。macOS 构建为本地 ad-hoc 签名，未进行 Apple 公证；Windows 构建未配置代码签名。

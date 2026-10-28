@@ -74,17 +74,47 @@ def test_real_s7_reads_writes_and_connection_monitor(runtime):
 def test_stop_closes_idle_clients_and_releases_port(runtime):
     clients = [connect(runtime) for _ in range(4)]
     wait_until(lambda: runtime.statistics()["connections"] == 4)
+    server = runtime.server
+    workers = list(server.clients)
     start = time.monotonic()
     runtime.stop()
     assert time.monotonic() - start < 2
     assert runtime.statistics()["connections"] == 0
     assert not runtime.running
+    assert not server.server_thread.is_alive()
+    assert not any(worker.is_alive() for worker in workers)
     runtime.start()
     new_client = connect(runtime)
     assert len(new_client.db_read(1, 0, 4)) == 4
     disconnect(new_client)
     for client in clients:
         disconnect(client)
+
+
+def test_stop_closes_incomplete_handshakes_and_allows_restart(runtime):
+    clients = [socket.create_connection(('127.0.0.1', runtime.config.port)) for _ in range(4)]
+    try:
+        # A partial TPKT header must not hold the service open during shutdown.
+        for client in clients:
+            client.sendall(b'\x03\x00')
+        wait_until(lambda: runtime.statistics()['connections'] == 4)
+        server = runtime.server
+        workers = list(server.clients)
+        start = time.monotonic()
+        runtime.stop()
+        assert time.monotonic() - start < 2
+        assert not server.server_thread.is_alive()
+        assert not any(worker.is_alive() for worker in workers)
+        assert runtime.statistics()['connections'] == 0
+        runtime.start()
+        new_client = connect(runtime)
+        try:
+            assert len(new_client.db_read(1, 0, 4)) == 4
+        finally:
+            disconnect(new_client)
+    finally:
+        for client in clients:
+            client.close()
 
 
 def test_port_collision_is_not_silently_shared(runtime):

@@ -7,7 +7,7 @@ name = "s7-studio-simulator"
 dynamic = ["version"]
 description = "Cross-platform graphical S7 communication and data simulator"
 requires-python = ">=3.11"
-dependencies = ["PySide6-Essentials>=6.8,<7", "python-snap7==3.2.1"]
+dependencies = ["PySide6-Essentials==6.12.0", "python-snap7==3.2.1"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "pyinstaller>=6,<7"]

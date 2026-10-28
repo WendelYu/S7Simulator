@@ -31,6 +31,6 @@ if is_mac:
             'CFBundleShortVersionString': __version__,
             'CFBundleVersion': __version__,
             'NSHighResolutionCapable': True,
-            'LSMinimumSystemVersion': '13.0',
+            'LSMinimumSystemVersion': '14.0',
         },
     )
